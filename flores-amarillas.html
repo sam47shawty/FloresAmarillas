@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Para ti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#F4C9A8;
+    --sky-mid:#FBE3B0;
+    --sky-low:#FFF2CE;
+    --ground:#4B5A34;
+    --ground-dark:#3A4728;
+    --petal:#F7C331;
+    --petal-shade:#EFB018;
+    --center:#6B4423;
+    --center-dark:#4A2E12;
+    --stem:#5B7B3B;
+    --cream:#FFF8E6;
+    --ink:#3B2E14;
+    --ink-soft:#6b5a2c;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *,*::before,*::after{ box-sizing:inherit; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:'Work Sans', sans-serif;
+    background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-low) 72%, var(--ground) 72%, var(--ground-dark) 100%);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    height:100dvh;
+    min-height:560px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+  }
+
+  .flower-wrap{
+    width:min(80vw, 340px);
+    padding-bottom:6vh;
+  }
+  .flower-wrap svg{ width:100%; height:auto; display:block; overflow:visible; }
+
+  /* ----- STEM ----- */
+  #stem-path{
+    fill:none;
+    stroke:var(--stem);
+    stroke-width:6;
+    stroke-linecap:round;
+  }
+
+  /* ----- LEAVES ----- */
+  .leaf{
+    fill:var(--stem);
+    opacity:0;
+    transform-box:fill-box;
+    transform-origin:0% 50%;
+    animation:leafIn .6s cubic-bezier(.2,.9,.3,1.2) forwards;
+  }
+  .leaf.l2{ transform-origin:100% 50%; }
+  @keyframes leafIn{
+    0%{ opacity:0; transform:scale(0.2) rotate(-30deg); }
+    100%{ opacity:1; transform:scale(1) rotate(0deg); }
+  }
+
+  /* ----- PETALS ----- */
+  .petal{
+    fill:var(--petal);
+    opacity:0;
+    transform-box:fill-box;
+    transform-origin:50% 100%;
+    animation:petalIn .55s cubic-bezier(.25,.8,.25,1.15) forwards;
+  }
+  .petal.petal-alt{ fill:var(--petal-shade); }
+  @keyframes petalIn{
+    0%{ opacity:0; transform:scale(0.15) rotate(-12deg); }
+    70%{ opacity:1; }
+    100%{ opacity:1; transform:scale(1) rotate(0deg); }
+  }
+
+  /* ----- CENTER ----- */
+  .center-disc{
+    opacity:0;
+    transform-box:fill-box;
+    transform-origin:50% 50%;
+    animation:centerIn .5s cubic-bezier(.3,1.4,.4,1) forwards;
+  }
+  @keyframes centerIn{
+    0%{ opacity:0; transform:scale(0.3); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+
+  .glow{
+    opacity:0;
+    animation:glowIn 1.6s ease forwards;
+  }
+  @keyframes glowIn{
+    0%{ opacity:0; }
+    100%{ opacity:0.55; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    #stem-path{ stroke-dashoffset:0 !important; transition:none !important; }
+    .leaf, .petal, .center-disc, .glow{
+      animation:none !important;
+      opacity:1 !important;
+      transform:none !important;
+    }
+  }
+
+  /* ----- POPUP ----- */
+  .backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(30,22,10,0.45);
+    backdrop-filter: blur(2px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .6s ease;
+    z-index:10;
+  }
+  .backdrop.show{ opacity:1; pointer-events:auto; }
+
+  .card{
+    background:var(--cream);
+    color:var(--ink);
+    border-radius:26px;
+    padding:34px 28px;
+    max-width:380px;
+    width:100%;
+    text-align:center;
+    position:relative;
+    transform:translateY(18px) scale(0.96);
+    opacity:0;
+    transition:transform .5s cubic-bezier(.2,.8,.2,1), opacity .5s ease;
+    box-shadow:0 30px 60px rgba(0,0,0,0.25);
+  }
+  .backdrop.show .card{
+    transform:translateY(0) scale(1);
+    opacity:1;
+    transition-delay:.15s;
+  }
+  .card .close{
+    position:absolute;
+    top:14px; right:14px;
+    width:32px; height:32px;
+    border-radius:50%;
+    border:1px solid rgba(59,46,20,0.2);
+    color:var(--ink);
+    font-size:1.1rem;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+  }
+  .card .close:hover{ border-color:var(--ink); }
+  .card .card-icon{ width:48px; height:48px; margin:0 auto 14px; }
+  .card h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.5rem;
+    margin:0 0 14px;
+    line-height:1.2;
+  }
+  .card p{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:1.05rem;
+    line-height:1.55;
+    margin:0 0 20px;
+    color:var(--ink);
+  }
+  .card .signoff{
+    font-family:'Work Sans', sans-serif;
+    font-style:normal;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    display:block;
+    margin-top:-6px;
+  }
+  .replay{
+    border:1px solid rgba(59,46,20,0.25);
+    padding:9px 20px;
+    border-radius:999px;
+    font-size:0.85rem;
+    color:var(--ink);
+    background:transparent;
+    cursor:pointer;
+  }
+  .replay:hover{ border-color:var(--ink); }
+
+  button{ font-family:inherit; cursor:pointer; }
+  button:focus-visible{ outline:3px solid var(--petal); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="glow" style="position:absolute; top:8%; left:50%; width:60vw; max-width:420px; aspect-ratio:1; transform:translateX(-50%); background:radial-gradient(circle, rgba(255,224,140,0.9) 0%, rgba(255,224,140,0) 70%); pointer-events:none;"></div>
+
+  <div class="flower-wrap">
+    <svg viewBox="0 0 240 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Una flor amarilla abriéndose">
+      <path id="stem-path" d="M120,330 C118,260 122,200 120,120"></path>
+      <path class="leaf l1" d="M120,230 C90,225 70,245 55,270 C90,270 110,255 120,230 Z"></path>
+      <path class="leaf l2" d="M120,190 C150,183 172,200 188,222 C155,225 133,213 120,190 Z"></path>
+      <g id="petals" transform="translate(120,115)"></g>
+      <circle class="center-disc" cx="120" cy="115" r="26" fill="var(--center)"></circle>
+      <g class="center-disc" fill="var(--center-dark)">
+        <circle cx="110" cy="108" r="2.4"></circle>
+        <circle cx="128" cy="106" r="2.2"></circle>
+        <circle cx="120" cy="120" r="2.3"></circle>
+        <circle cx="132" cy="120" r="2"></circle>
+        <circle cx="108" cy="122" r="2"></circle>
+        <circle cx="120" cy="98" r="2"></circle>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="card-title">
+    <button class="close" id="close-btn" aria-label="Cerrar">×</button>
+    <div class="card-icon" id="card-icon"></div>
+    <h2 id="card-title">Todo cambiará ¿Si?</h2>
+    <p>Quizás no tenga dinero para unas flores reales, un detalle caro, o para enviarte algo. Pero, un día como hoy no puede pasar por desapercibido por mí. Hago esto no porque me lo pides, sino porque me nace, por muchas diferencias que podamos tener, siempre te vas a merecer el mundo entero mi amor. Eres una gran mujer, hermosa, inteligente y maravillosa; el sueño de todo hombre. Una mujer que lucha día tras día por mejorar y destacarse, una reina si me lo preguntan. Nunca habrá alguien que destaque como tú lo haces en mi corazón, siempre serás tú y nadie más. Te amo 💙💙</span>
+    <div style="margin-top:18px;">
+      <button class="replay" id="replay-btn" type="button">Ver la flor de nuevo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- draw the stem with stroke-dashoffset ----------
+  var stem = document.getElementById('stem-path');
+  var len = stem.getTotalLength();
+  stem.style.strokeDasharray = len;
+  stem.style.strokeDashoffset = len;
+  stem.style.transition = reduce ? 'none' : 'stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)';
+
+  // ---------- build petals ----------
+  var petalGroup = document.getElementById('petals');
+  var COUNT = 11;
+  var petalDelays = [];
+  function buildPetals(){
+    petalGroup.innerHTML = '';
+    for(var i=0;i<COUNT;i++){
+      var angle = (360/COUNT) * i;
+      // The fan-out rotation lives on this outer, un-animated group...
+      var holder = document.createElementNS('http://www.w3.org/2000/svg','g');
+      holder.setAttribute('transform', 'rotate(' + angle + ')');
+      // ...so the CSS reveal animation's own transform (on the ellipse)
+      // never overwrites the placement.
+      var p = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+      p.setAttribute('cx', 0);
+      p.setAttribute('cy', -46);
+      p.setAttribute('rx', 15);
+      p.setAttribute('ry', 34);
+      p.classList.add('petal');
+      if(i % 2 === 1){ p.classList.add('petal-alt'); }
+      var delay = reduce ? 0 : (1.05 + i*0.085);
+      p.style.animationDelay = delay + 's';
+      holder.appendChild(p);
+      petalGroup.appendChild(holder);
+      petalDelays.push(delay);
+    }
+  }
+  buildPetals();
+
+  function iconSVG(){
+    var html = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">';
+    for(var i=0;i<10;i++){
+      var a = (360/10)*i;
+      html += '<ellipse cx="50" cy="26" rx="7" ry="17" fill="#F7C331" transform="rotate('+a+' 50 50)"/>';
+    }
+    html += '<circle cx="50" cy="50" r="12" fill="#6B4423"/></svg>';
+    return html;
+  }
+  document.getElementById('card-icon').innerHTML = iconSVG();
+
+  // ---------- timings ----------
+  var leaves = document.querySelectorAll('.leaf');
+  var l1delay = reduce ? 0 : 0.5, l2delay = reduce ? 0 : 0.65;
+  leaves[0].style.animationDelay = l1delay + 's';
+  leaves[1].style.animationDelay = l2delay + 's';
+
+  var centerDelay = reduce ? 0 : (1.05 + COUNT*0.085 + 0.35);
+  document.querySelectorAll('.center-disc').forEach(function(el){
+    el.style.animationDelay = centerDelay + 's';
+  });
+
+  var totalMs = reduce ? 300 : (centerDelay*1000 + 500 + 700);
+
+  // ---------- run stem draw + schedule popup ----------
+  var backdrop = document.getElementById('backdrop');
+  function showPopup(){ backdrop.classList.add('show'); }
+
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      stem.style.strokeDashoffset = '0';
+    });
+  });
+
+  setTimeout(showPopup, totalMs);
+
+  // ---------- controls ----------
+  document.getElementById('close-btn').addEventListener('click', function(){
+    backdrop.classList.remove('show');
+  });
+  backdrop.addEventListener('click', function(e){
+    if(e.target === backdrop){ backdrop.classList.remove('show'); }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ backdrop.classList.remove('show'); }
+  });
+
+  document.getElementById('replay-btn').addEventListener('click', function(){
+    backdrop.classList.remove('show');
+    stem.style.transition = 'none';
+    stem.style.strokeDashoffset = len;
+    leaves.forEach(function(l){ l.style.animation = 'none'; });
+    buildPetals();
+    document.querySelectorAll('.center-disc').forEach(function(el){ el.style.animation = 'none'; });
+    void document.body.offsetWidth; // reflow
+    stem.style.transition = reduce ? 'none' : 'stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)';
+    leaves.forEach(function(l, i){
+      l.style.animation = '';
+      l.style.animationDelay = (i===0? l1delay : l2delay) + 's';
+    });
+    document.querySelectorAll('.center-disc').forEach(function(el){
+      el.style.animation = '';
+      el.style.animationDelay = centerDelay + 's';
+    });
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ stem.style.strokeDashoffset = '0'; });
+    });
+    setTimeout(showPopup, totalMs);
+  });
+})();
+</script>
+</body>
+</html>
